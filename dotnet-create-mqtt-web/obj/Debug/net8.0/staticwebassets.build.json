@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "pj51ElIAM4/+S0mywxKF0L0fdRQCqA7WTDUNzSi6LAA=",
+  "Source": "dotnet-create-mqtt-web",
+  "BasePath": "_content/dotnet-create-mqtt-web",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
