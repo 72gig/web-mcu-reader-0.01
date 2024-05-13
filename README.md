@@ -15,6 +15,6 @@
 ```
 myServer = "xxx.xxx.xxx.xxx"  //your database server IP
 userName = "xxxxx"   //your database user name
-password = "passPost11SQL"  //your database user password
-dataBase = "postgres"  //your database name
+password = "xxxxx"  //your database user password
+dataBase = "xxxxx"  //your database name
 ```
