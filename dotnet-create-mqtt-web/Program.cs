@@ -62,6 +62,7 @@ try{
     }
 }
 catch (Exception ex){
+    Console.WriteLine("出現錯語，下列為錯語訊息");
     Console.WriteLine(ex);
 }
 finally{
@@ -96,6 +97,17 @@ await using (var cmd = new NpgsqlCommand(
         Key_id serial primary key,
         Topic text not null,
         Payload text not null);", conn)){
+    await cmd.ExecuteNonQueryAsync();
+}
+// 如果沒有, 建立客戶端資料的資料表
+await using (var cmd = new NpgsqlCommand(
+    @"create table if not exists mqtt_clients (
+        Client_id serial primary key,
+        username text not null,
+        password text not null
+    );
+    ", conn
+)){
     await cmd.ExecuteNonQueryAsync();
 }
 
@@ -150,20 +162,48 @@ Task Server_InterceptingPublishAsync(InterceptingPublishEventArgs arg)
 
 Task Server_ValidateConnection(ValidatingConnectionEventArgs Args)
 {
-    if (Args.ClientId == "UNIQUE_RPI_PICO_ID_1")
-    {
-        // 用戶名和密碼驗證
-        // 大部分情況下，我們應該使用客戶端加密 token 驗證，也就是可客戶端 ID 對應的密鑰加密後的 token
-        if (Args.Username != "RPI_PICO_USERNAME_1" || Args.Password != "RPI_PICO_PASSWORD_1")
+    // 在這裡讀取clientid username password
+    // 存取資料庫確認現在有的client
+    using (var cmd = new NpgsqlCommand("select * from mqtt_clients", conn)){
+        var clientsData = cmd.ExecuteReader();
+        bool continueCheck = true;
+        while(clientsData.Read() || clientCheck)
         {
-            // 驗證失敗，告訴客戶端，鑑權失敗
-            Args.ReasonCode = MQTTnet.Protocol.MqttConnectReasonCode.BadUserNameOrPassword;
+            if (Args.ClientId == clientsData.GetString(0))
+            {
+                // 用戶名和密碼驗證
+                // 大部分情況下，我們應該使用客戶端加密 token 驗證，也就是可客戶端 ID 對應的密鑰加密後的 token
+                if (Args.Username != clientsData.GetString(1) || Args.Password != clientsData.GetString(2))
+                {
+                    // 驗證失敗，告訴客戶端，鑑權失敗
+                    Args.ReasonCode = MQTTnet.Protocol.MqttConnectReasonCode.BadUserNameOrPassword;
+                }
+                else{
+                    continueCheck = false;
+                }
+            }
         }
+        if (continueCheck == true){
+            Args.ReasonCode = MQTTnet.Protocol.MqttConnectReasonCode.ClientIdentifierNotValid;
+        }
+        clientsData.Close();
     }
-    else
-    {
-        Args.ReasonCode = MQTTnet.Protocol.MqttConnectReasonCode.ClientIdentifierNotValid;
-    }
+
+    // 如果不使用從資料庫讀取的方式, 而是把登入資料寫在程式碼內則用下列方式
+    // if (Args.ClientId == "UNIQUE_RPI_PICO_ID_1")
+    // {
+    //     // 用戶名和密碼驗證
+    //     // 大部分情況下，我們應該使用客戶端加密 token 驗證，也就是可客戶端 ID 對應的密鑰加密後的 token
+    //     if (Args.Username != "RPI_PICO_USERNAME_1" || Args.Password != "RPI_PICO_PASSWORD_1")
+    //     {
+    //         // 驗證失敗，告訴客戶端，鑑權失敗
+    //         Args.ReasonCode = MQTTnet.Protocol.MqttConnectReasonCode.BadUserNameOrPassword;
+    //     }
+    // }
+    // else
+    // {
+    //     Args.ReasonCode = MQTTnet.Protocol.MqttConnectReasonCode.ClientIdentifierNotValid;
+    // }
     return Task.CompletedTask;
 }
 
