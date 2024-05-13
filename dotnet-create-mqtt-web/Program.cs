@@ -3,6 +3,8 @@ using MQTTnet;
 using MQTTnet.Server;
 using static System.Console;
 using Npgsql;
+using System.IO;
+using System.Text.RegularExpressions;
 
 
 // 開啟 postgresql server, 保存資料
@@ -11,13 +13,66 @@ var myServer = "";
 var userName = "";
 var password = "";
 var dataBase = "";
-
+try{
+    StreamReader txtDataReader = new StreamReader("password.txt");
+    string line;
+    MatchCollection matches;
+    while ((line = txtDataReader.ReadLine()) != null)
+    {
+        if (line.Contains("myServer")){
+            Regex myServerRegex= new Regex(@"(?<="")\d*\D\d*\D\d*\D\d*");
+            matches = myServerRegex.Matches(line);
+            foreach (Match m in matches)
+            {
+                GroupCollection groups = m.Groups;
+                myServer = groups[0].Value;
+            }
+            continue;
+        }
+        if (line.Contains("userName")){
+            Regex userNameRegex= new Regex(@"(?<="")\w+");
+            matches = userNameRegex.Matches(line);
+            foreach (Match m in matches)
+            {
+                GroupCollection groups = m.Groups;
+                userName = groups[0].Value;
+            }
+            continue;
+        }
+        if (line.Contains("password")){
+            Regex passwordRegex= new Regex(@"(?<="")\w+");
+            matches = passwordRegex.Matches(line);
+            foreach (Match m in matches)
+            {
+                GroupCollection groups = m.Groups;
+                password = groups[0].Value;
+            }
+            continue;
+        }
+        if (line.Contains("dataBase")){
+            Regex databaseRegex= new Regex(@"(?<="")\w+");
+            matches = databaseRegex.Matches(line);
+            foreach (Match m in matches)
+            {
+                GroupCollection groups = m.Groups;
+                dataBase = groups[0].Value;
+            }
+            continue;
+        }
+    }
+}
+catch (Exception ex){
+    Console.WriteLine(ex);
+}
+finally{
+    Console.WriteLine("資料庫參數取得完成");
+}
 // 建立字串
-string[] array = {"Host=", myServer, ";Username=", userName,
+string[] databaseArray = {"Host=", myServer, ";Username=", userName,
                   ";Password=", password, ";Database=", dataBase};
 
 // 用join把字串連接起來
-var connString = String.Join("",array);
+var connString = String.Join("",databaseArray);
 
 // 連線需要使用的程式碼
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connString);
