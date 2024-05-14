@@ -167,7 +167,7 @@ Task Server_ValidateConnection(ValidatingConnectionEventArgs Args)
     using (var cmd = new NpgsqlCommand("select * from mqtt_clients", conn)){
         var clientsData = cmd.ExecuteReader();
         bool continueCheck = true;
-        while(clientsData.Read() || clientCheck)
+        while(clientsData.Read() || continueCheck)
         {
             if (Args.ClientId == clientsData.GetString(0))
             {
