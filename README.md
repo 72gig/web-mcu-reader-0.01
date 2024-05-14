@@ -18,3 +18,14 @@ userName = "xxxxx"   //your database user name
 password = "xxxxx"  //your database user password
 dataBase = "xxxxx"  //your database name
 ```
+
+### 事前準備
+
+安裝 .net 8.0 版，並安裝mqttnet與npgsql
+
+可參考下列程式碼
+
+```
+dotnet add package MQTTnet --version 4.3.3.952
+dotnet add package Npgsql --version 8.0.3
+```
